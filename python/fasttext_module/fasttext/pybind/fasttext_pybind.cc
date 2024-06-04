@@ -20,8 +20,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#https://github.com/facebookresearch/fastText/pull/1279/files
-#https://github.com/facebookresearch/fastText/pull/1352/files
+//https://github.com/facebookresearch/fastText/pull/1279/files
+//https://github.com/facebookresearch/fastText/pull/1352/files
 
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
