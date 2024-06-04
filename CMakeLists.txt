@@ -74,6 +74,7 @@ set_target_properties(fasttext-static_pic PROPERTIES OUTPUT_NAME fasttext_pic
 add_executable(fasttext-bin src/main.cc)
 
 if (MSVC)
+   SET(CMAKE_EXE_LINKER_FLAGS "-pthread")
    target_link_libraries(fasttext-bin fasttext-static)
 else()
    target_link_libraries(fasttext-bin pthread fasttext-static)
