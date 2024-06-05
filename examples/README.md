@@ -49,6 +49,46 @@ word_vector_brackets = model['example']
 print(word_vector_method == word_vector_brackets)
 ```
 
+### Получение аналогов слова:
+
+Для получения аналогов слова (или близких по смыслу слов) с использованием модели FastText, вы можете использовать метод get_nearest_neighbors. Этот метод позволяет найти ближайшие слова к заданному слову на основе косинусного расстояния между их векторными представлениями.
+
+Вот пример, который показывает, как загрузить модель, обучить её на текстовом корпусе, и затем использовать метод get_nearest_neighbors для получения аналогов слова:
+
+```
+import fasttext
+
+# Пример текстового корпуса
+corpus = [
+    "This is an example sentence.",
+    "FastText can learn embeddings.",
+    "Embeddings are useful for many tasks.",
+    "Natural language processing is fun."
+]
+
+# Запись корпуса в файл
+with open('corpus.txt', 'w') as f:
+    for sentence in corpus:
+        f.write(sentence + '\n')
+
+# Тренировка модели FastText с параметрами по умолчанию (CBOW)
+model = fasttext.train_unsupervised(
+    input='corpus.txt', model='cbow', dim=300, ws=5, epoch=5, minn=5, maxn=5, neg=10, t=1e-4, thread=4, lr=0.05)
+
+# Сохранение модели
+model.save_model('fasttext_cbow_model.bin')
+
+# Пример получения аналогов слова
+word = 'example'
+nearest_neighbors = model.get_nearest_neighbors(word)
+
+# Печать аналогов слова
+print(f"Nearest neighbors for '{word}':")
+for neighbor in nearest_neighbors:
+    print(f"{neighbor[1]}: {neighbor[0]}")
+
+```
+
 ### Работа со словарём
 
 Для извлечения словаря из модели FastText и сохранения его в текстовом виде, вы можете использовать метод get_words(), который возвращает список всех слов, содержащихся в модели. Этот список можно сохранить в файл.
@@ -122,7 +162,40 @@ print(f"Vocabulary saved to 'fasttext_vocabulary.txt'")
 - **Работа с морфологией:** Символьные n-граммы помогают учитывать морфологические изменения слов, такие как префиксы и суффиксы.
 - **Улучшение обобщающей способности:** Модель может лучше обобщать и создавать более точные эмбеддинги для новых или редких слов.
 
-## Методы для получения представления предложения. Вот несколько подходов:
+## Получение эмбедингов для фраз
+
+Если вы хотите, чтобы FastText обучался непосредственно на фразах, вы можете предварительно обработать ваш корпус, чтобы каждая фраза считалась как одно слово, используя специальные символы для обозначения границ фраз. Однако этот метод требует более сложной предварительной обработки данных и изменения формата ввода.
+
+```
+import fasttext
+
+# Пример предварительной обработки текста для фраз
+def preprocess_text(text):
+    sentences = text.split('\n')
+    preprocessed_sentences = ['_'.join(sentence.split()) for sentence in sentences]
+    return '\n'.join(preprocessed_sentences)
+
+with open('phrases.txt', 'w') as f:
+    text = """this is an example sentence
+              fasttext can learn embeddings
+              embeddings are useful for many tasks"""
+    f.write(preprocess_text(text))
+
+# Обучение модели на предварительно обработанном корпусе
+model = fasttext.train_unsupervised('phrases.txt', model='skipgram')
+
+# Получение эмбединга для фразы
+phrase_vector = model.get_word_vector('example_sentence')
+print(phrase_vector)
+```
+
+В этом примере предварительная обработка текста объединяет слова в фразах с помощью подчеркивания **(_)**, 
+чтобы FastText воспринимал их как единое слово. Модель обучается на таких "словах-фразах" и может генерировать эмбединги для них.
+
+
+## Методы для получения представления предложения.
+
+Вот несколько подходов:
 
 - Обучение модели FastText для фраз: Вместо того чтобы обучать модель на отдельных словах, можно обучить её на фразах или даже предложениях. Это менее распространённый подход, но он может быть полезен.
 
@@ -136,7 +209,7 @@ print(f"Vocabulary saved to 'fasttext_vocabulary.txt'")
 
 ### Пример с использованием архитектур типа RNN или LSTM для создания эмбедингов предложений (keras)
 
-**example-3-lstm.py**s
+**example-3-lstm.py**
 
 ### Пример с использованием RNN для создания эмбедингов предложений (torch)
 
