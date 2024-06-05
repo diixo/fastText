@@ -110,6 +110,69 @@ print(sentence_embedding)
 
 ### Наложение TFIDF на эмбединг вместо усреднения
 
+Использование TF-IDF взвешивания на эмбеддингах FastText — интересный подход, который объединяет статистическое взвешивание термов (TF-IDF) и предобученные векторные представления слов (эмбеддинги). 
+В этом примере мы покажем, как можно скомбинировать TF-IDF с эмбеддингами FastText для получения векторных представлений предложений.
+
+```
+import fasttext
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Загрузка предобученной модели FastText
+ft_model = fasttext.load_model('cc.en.300.bin')  # Замените на путь к вашей модели
+
+# Пример данных
+sentences = [
+    "this is an example sentence",
+    "fasttext can learn embeddings",
+    "embeddings are useful for many tasks"
+]
+
+# Инициализация TfidfVectorizer
+tfidf_vectorizer = TfidfVectorizer()
+
+# Обучение TfidfVectorizer и получение TF-IDF матрицы
+tfidf_matrix = tfidf_vectorizer.fit_transform(sentences)
+feature_names = tfidf_vectorizer.get_feature_names_out()
+
+# Функция для получения взвешенного эмбеддинга предложения
+def get_weighted_embedding(sentence, tfidf_vectorizer, tfidf_matrix, ft_model, feature_names):
+    # Получение индексов и значений TF-IDF для данного предложения
+    response = tfidf_vectorizer.transform([sentence])
+    tfidf_scores = {feature_names[i]: response[0, i] for i in range(response.shape[1]) if response[0, i] > 0}
+    
+    # Инициализация вектора предложения
+    weighted_embedding = np.zeros(ft_model.get_dimension())
+    
+    # Получение взвешенных эмбеддингов
+    for word, tfidf_score in tfidf_scores.items():
+        if word in ft_model:
+            weighted_embedding += ft_model[word] * tfidf_score
+            
+    # Нормализация вектора предложения
+    norm = np.linalg.norm(weighted_embedding)
+    if norm > 0:
+        weighted_embedding /= norm
+    
+    return weighted_embedding
+
+# Получение взвешенных эмбеддингов для всех предложений
+sentence_embeddings = np.array([get_weighted_embedding(sentence, tfidf_vectorizer, tfidf_matrix, ft_model, feature_names) for sentence in sentences])
+
+# Печать эмбеддингов предложений
+print(sentence_embeddings)
+```
+
+Комбинирование TF-IDF и эмбеддингов FastText:
+
+**Для каждого предложения:**
+- Преобразуем предложение в TF-IDF представление.
+- Получаем эмбеддинги слов и умножаем их на соответствующие TF-IDF веса.
+- Суммируем взвешенные эмбеддинги слов для получения эмбеддинга предложения.
+- Нормализуем итоговый вектор предложения для получения нормализованного эмбеддинга.
+
+Этот пример показывает, как можно скомбинировать TF-IDF взвешивание и предобученные эмбеддинги FastText для получения векторных представлений предложений. Этот метод позволяет учесть важность слов в контексте предложения при создании его эмбеддинга.
+
 ## Word vectors for 157 languages
 
 We distribute pre-trained word vectors for 157 languages, trained on Common Crawl and Wikipedia using fastText. 
