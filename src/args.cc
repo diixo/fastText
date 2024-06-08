@@ -38,7 +38,7 @@ Args::Args() {
   verbose = 2;
   pretrainedVectors = "";
   saveOutput = false;
-  noSaveVector = True;
+  noSaveVectors = false;
 
   seed = 0;
 
